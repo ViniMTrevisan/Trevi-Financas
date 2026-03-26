@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     telegram_chat_id: int
     gemini_api_key: str
     database_url: str
+    frontend_url: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
