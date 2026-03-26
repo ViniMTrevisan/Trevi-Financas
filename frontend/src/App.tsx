@@ -1,8 +1,11 @@
 import { useState } from "react";
+import BudgetProgress from "./components/BudgetProgress";
 import CategoryChart from "./components/CategoryChart";
 import DailyChart from "./components/DailyChart";
 import SummaryCards from "./components/SummaryCards";
 import TransactionsTable from "./components/TransactionsTable";
+
+const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 function currentMonth() {
   const now = new Date();
@@ -32,17 +35,26 @@ export default function App() {
             Trevi Finanças
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <label htmlFor="month-picker" className="text-sm text-gray-500">
-            Mês:
-          </label>
-          <input
-            id="month-picker"
-            type="month"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-          />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <label htmlFor="month-picker" className="text-sm text-gray-500">
+              Mês:
+            </label>
+            <input
+              id="month-picker"
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            />
+          </div>
+          <a
+            href={`${BASE_URL}/api/export?month=${selectedMonth}`}
+            download
+            className="text-sm bg-indigo-50 text-indigo-600 font-medium px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
+          >
+            Exportar CSV
+          </a>
         </div>
       </header>
 
@@ -63,6 +75,9 @@ export default function App() {
           <DailyChart selectedMonth={selectedMonth} />
           <CategoryChart selectedMonth={selectedMonth} />
         </div>
+
+        {/* Budgets */}
+        <BudgetProgress selectedMonth={selectedMonth} />
 
         {/* Transactions */}
         <TransactionsTable selectedMonth={selectedMonth} />

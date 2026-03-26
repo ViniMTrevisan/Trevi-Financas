@@ -1,9 +1,10 @@
 from datetime import date, timedelta
 
 from sqlalchemy import func, select, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Transaction
+from app.models import CategoryBudget, Transaction
 
 
 async def total_today(session: AsyncSession) -> float:
@@ -44,6 +45,16 @@ async def categories_month(session: AsyncSession) -> list[tuple[str, float]]:
     return [(row.category, float(row.total)) for row in result]
 
 
+async def get_transactions_month(session: AsyncSession, year: int, month: int) -> list[Transaction]:
+    result = await session.execute(
+        select(Transaction)
+        .where(func.extract("year", Transaction.transaction_date) == year)
+        .where(func.extract("month", Transaction.transaction_date) == month)
+        .order_by(Transaction.transaction_date, Transaction.created_at)
+    )
+    return list(result.scalars())
+
+
 async def total_week(session: AsyncSession) -> float:
     today = date.today()
     monday = today - timedelta(days=today.weekday())
@@ -82,4 +93,24 @@ async def update_transaction(session: AsyncSession, tx_id, **fields) -> None:
     await session.execute(
         update(Transaction).where(Transaction.id == tx_id).values(**fields)
     )
+    await session.commit()
+
+
+async def get_budgets(session: AsyncSession) -> list[CategoryBudget]:
+    result = await session.execute(
+        select(CategoryBudget).order_by(CategoryBudget.category)
+    )
+    return list(result.scalars())
+
+
+async def set_budget(session: AsyncSession, category: str, monthly_limit: float) -> None:
+    stmt = (
+        insert(CategoryBudget)
+        .values(category=category, monthly_limit=monthly_limit)
+        .on_conflict_do_update(
+            index_elements=["category"],
+            set_={"monthly_limit": monthly_limit},
+        )
+    )
+    await session.execute(stmt)
     await session.commit()

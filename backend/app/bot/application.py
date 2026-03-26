@@ -6,8 +6,10 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from app.bot.handlers.commands import (
     handle_categorias,
     handle_editar,
+    handle_exportar,
     handle_hoje,
     handle_mes,
+    handle_metas,
     handle_semana,
     handle_ultimas,
     send_weekly_summary,
@@ -30,6 +32,8 @@ def build_application() -> Application:
     app.add_handler(CommandHandler("ultimas", handle_ultimas, filters=owner))
     app.add_handler(CommandHandler("categorias", handle_categorias, filters=owner))
     app.add_handler(CommandHandler("semana", handle_semana, filters=owner))
+    app.add_handler(CommandHandler("exportar", handle_exportar, filters=owner))
+    app.add_handler(CommandHandler("metas", handle_metas, filters=owner))
     app.add_handler(CommandHandler("editar", handle_editar, filters=owner))
 
     app.add_handler(MessageHandler(owner & filters.PHOTO, handle_photo))

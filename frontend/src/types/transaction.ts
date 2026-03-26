@@ -30,3 +30,8 @@ export interface CategoryTotal {
   total: number;
   count: number;
 }
+
+export interface Budget {
+  category: string;
+  monthly_limit: number;
+}

@@ -6,8 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.bot.application import build_application
 from app.config import get_settings
 from app.database import Base, engine
-from app.models import Transaction  # noqa: F401 — registra o model no Base.metadata
-from app.routers import transactions
+from app.models import CategoryBudget, Transaction  # noqa: F401 — registra os models no Base.metadata
+from app.routers import budgets, transactions
 
 
 @asynccontextmanager
@@ -41,11 +41,12 @@ if _settings.frontend_url:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
-    allow_methods=["GET"],
+    allow_methods=["GET", "PUT"],
     allow_headers=["*"],
 )
 
 app.include_router(transactions.router, prefix="/api")
+app.include_router(budgets.router, prefix="/api")
 
 
 @app.get("/health")

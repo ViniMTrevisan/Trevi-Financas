@@ -1,4 +1,5 @@
 import type {
+  Budget,
   CategoryTotal,
   SummaryMonth,
   SummaryToday,
@@ -34,4 +35,6 @@ export const api = {
     const query = qs.toString();
     return get<Transaction[]>(`/api/transactions${query ? `?${query}` : ""}`);
   },
+
+  budgets: () => get<Budget[]>("/api/budgets"),
 };

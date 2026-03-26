@@ -37,3 +37,14 @@ class CategoryTotal(BaseModel):
     category: str
     total: float
     count: int
+
+
+class BudgetOut(BaseModel):
+    category: str
+    monthly_limit: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BudgetIn(BaseModel):
+    monthly_limit: float

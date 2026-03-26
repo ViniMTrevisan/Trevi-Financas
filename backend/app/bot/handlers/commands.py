@@ -1,14 +1,19 @@
+import csv
+import io
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
-from telegram import Update
+from telegram import InputFile, Update
 from telegram.ext import ContextTypes
 
 from app.bot.queries import (
     categories_month,
     categories_week,
+    get_budgets,
+    get_transactions_month,
     get_transaction_by_position,
     last_transactions,
+    set_budget,
     total_month,
     total_today,
     total_week,
@@ -174,6 +179,107 @@ async def handle_editar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             await update.message.reply_text(
                 f"Campo desconhecido: '{field}'. Use: valor, categoria ou local."
             )
+
+
+_VALID_CATEGORIES = {
+    "Alimentação", "Mercado", "Transporte", "Saúde", "Lazer", "Serviços", "Outro"
+}
+
+
+def _progress_bar(pct: float, width: int = 10) -> str:
+    filled = min(int(pct / 100 * width), width)
+    return "█" * filled + "░" * (width - filled)
+
+
+async def handle_metas(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+
+    # /metas <Categoria> <valor> → define meta
+    if args and len(args) >= 2:
+        category = args[0].capitalize()
+        # Ajuste para categorias acentuadas passadas sem acento
+        for valid in _VALID_CATEGORIES:
+            if valid.lower() == category.lower():
+                category = valid
+                break
+
+        if category not in _VALID_CATEGORIES:
+            await update.message.reply_text(
+                f"Categoria inválida: {category}\nVálidas: {', '.join(sorted(_VALID_CATEGORIES))}"
+            )
+            return
+
+        try:
+            limit = float(args[1].replace(",", "."))
+        except ValueError:
+            await update.message.reply_text(f"Valor inválido: {args[1]}")
+            return
+
+        async with AsyncSessionLocal() as session:
+            await set_budget(session, category, limit)
+        await update.message.reply_text(f"✅ Meta de {category} definida: {_fmt(limit)}/mês")
+        return
+
+    # /metas → exibe progresso do mês atual
+    async with AsyncSessionLocal() as session:
+        budgets = await get_budgets(session)
+        spending = await categories_month(session)
+
+    spending_map = {cat: total for cat, total in spending}
+    budgets_map = {b.category: float(b.monthly_limit) for b in budgets}
+
+    all_categories = sorted(set(spending_map) | set(budgets_map))
+    if not all_categories:
+        await update.message.reply_text("📊 Nenhuma transação ou meta registrada.")
+        return
+
+    today = date.today()
+    label = f"{_MONTHS[today.month]}/{today.year}"
+    lines = [f"🎯 Metas — {label}", ""]
+
+    for cat in all_categories:
+        spent = spending_map.get(cat, 0.0)
+        limit = budgets_map.get(cat)
+        if limit:
+            pct = min(spent / limit * 100, 100)
+            bar = _progress_bar(pct)
+            lines.append(f"{cat}")
+            lines.append(f"  {_fmt(spent)} / {_fmt(limit)}  {bar}  {pct:.0f}%")
+        else:
+            lines.append(f"{cat}  {_fmt(spent)}  (sem meta)")
+
+    await update.message.reply_text("\n".join(lines))
+
+
+async def handle_exportar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    today = date.today()
+    year, month = today.year, today.month
+
+    async with AsyncSessionLocal() as session:
+        txs = await get_transactions_month(session, year, month)
+
+    if not txs:
+        await update.message.reply_text(f"📋 Nenhuma transação em {_MONTHS[month]}/{year} para exportar.")
+        return
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["Data", "Estabelecimento", "Categoria", "Valor", "Fonte"])
+    for tx in txs:
+        writer.writerow([
+            tx.transaction_date.strftime("%d/%m/%Y"),
+            tx.merchant,
+            tx.category,
+            f"{float(tx.amount):.2f}".replace(".", ","),
+            tx.source,
+        ])
+
+    csv_bytes = buf.getvalue().encode("utf-8")
+    filename = f"trevi-{year:04d}-{month:02d}.csv"
+    await update.message.reply_document(
+        document=InputFile(io.BytesIO(csv_bytes), filename=filename),
+        caption=f"📊 {len(txs)} transações de {_MONTHS[month]}/{year}",
+    )
 
 
 async def send_weekly_summary(context: ContextTypes.DEFAULT_TYPE) -> None:

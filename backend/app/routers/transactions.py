@@ -1,6 +1,9 @@
+import csv
+import io
 from datetime import date
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import Response
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -119,3 +122,43 @@ async def list_transactions(
 
     result = await session.execute(stmt)
     return list(result.scalars())
+
+
+@router.get("/export")
+async def export_csv(
+    month: str | None = Query(None, description="Mês no formato YYYY-MM"),
+    session: AsyncSession = Depends(get_db),
+):
+    if month:
+        year, m = int(month.split("-")[0]), int(month.split("-")[1])
+    else:
+        today = date.today()
+        year, m = today.year, today.month
+
+    stmt = (
+        select(Transaction)
+        .where(func.extract("year", Transaction.transaction_date) == year)
+        .where(func.extract("month", Transaction.transaction_date) == m)
+        .order_by(Transaction.transaction_date, Transaction.created_at)
+    )
+    result = await session.execute(stmt)
+    transactions = list(result.scalars())
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["Data", "Estabelecimento", "Categoria", "Valor", "Fonte"])
+    for tx in transactions:
+        writer.writerow([
+            tx.transaction_date.strftime("%d/%m/%Y"),
+            tx.merchant,
+            tx.category,
+            f"{float(tx.amount):.2f}".replace(".", ","),
+            tx.source,
+        ])
+
+    filename = f"trevi-{year:04d}-{m:02d}.csv"
+    return Response(
+        content=buf.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
