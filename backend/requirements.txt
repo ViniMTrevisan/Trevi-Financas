@@ -3,3 +3,5 @@ uvicorn[standard]==0.34.0
 pydantic-settings==2.8.1
 sqlalchemy[asyncio]==2.0.40
 asyncpg==0.30.0
+python-telegram-bot==21.9
+google-genai==1.10.0
