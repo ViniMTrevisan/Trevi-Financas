@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
 from telegram import Update
@@ -6,10 +6,12 @@ from telegram.ext import ContextTypes
 
 from app.bot.queries import (
     categories_month,
+    categories_week,
     get_transaction_by_position,
     last_transactions,
     total_month,
     total_today,
+    total_week,
     update_transaction,
 )
 from app.database import AsyncSessionLocal
@@ -77,6 +79,25 @@ async def handle_categorias(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     lines = [f"📊 {label} por categoria:"]
     for category, total in rows:
         lines.append(f"{category:<14} {_fmt(total)}")
+    await update.message.reply_text("\n".join(lines))
+
+
+async def handle_semana(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    async with AsyncSessionLocal() as session:
+        total = await total_week(session)
+        rows = await categories_week(session)
+
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+    label = f"{monday.strftime('%d/%m')} — {today.strftime('%d/%m')}"
+
+    if not rows:
+        await update.message.reply_text(f"📊 Semana ({label}): nenhum gasto registrado.")
+        return
+
+    lines = [f"📊 Semana ({label}): {_fmt(total)}", ""]
+    for category, subtotal in rows:
+        lines.append(f"{category:<14} {_fmt(subtotal)}")
     await update.message.reply_text("\n".join(lines))
 
 
@@ -153,3 +174,26 @@ async def handle_editar(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             await update.message.reply_text(
                 f"Campo desconhecido: '{field}'. Use: valor, categoria ou local."
             )
+
+
+async def send_weekly_summary(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Job agendado: envia resumo semanal todo domingo às 20h."""
+    chat_id: int = context.job.data
+
+    async with AsyncSessionLocal() as session:
+        total = await total_week(session)
+        rows = await categories_week(session)
+
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+    label = f"{monday.strftime('%d/%m')} — {today.strftime('%d/%m')}"
+
+    if not rows:
+        text = f"📊 Semana ({label}): nenhum gasto registrado."
+    else:
+        lines = [f"📊 Resumo da semana ({label}): {_fmt(total)}", ""]
+        for category, subtotal in rows:
+            lines.append(f"{category:<14} {_fmt(subtotal)}")
+        text = "\n".join(lines)
+
+    await context.bot.send_message(chat_id=chat_id, text=text)

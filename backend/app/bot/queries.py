@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,6 +38,30 @@ async def categories_month(session: AsyncSession) -> list[tuple[str, float]]:
         select(Transaction.category, func.sum(Transaction.amount).label("total"))
         .where(func.extract("year", Transaction.transaction_date) == today.year)
         .where(func.extract("month", Transaction.transaction_date) == today.month)
+        .group_by(Transaction.category)
+        .order_by(func.sum(Transaction.amount).desc())
+    )
+    return [(row.category, float(row.total)) for row in result]
+
+
+async def total_week(session: AsyncSession) -> float:
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+    result = await session.execute(
+        select(func.sum(Transaction.amount))
+        .where(Transaction.transaction_date >= monday)
+        .where(Transaction.transaction_date <= today)
+    )
+    return float(result.scalar() or 0)
+
+
+async def categories_week(session: AsyncSession) -> list[tuple[str, float]]:
+    today = date.today()
+    monday = today - timedelta(days=today.weekday())
+    result = await session.execute(
+        select(Transaction.category, func.sum(Transaction.amount).label("total"))
+        .where(Transaction.transaction_date >= monday)
+        .where(Transaction.transaction_date <= today)
         .group_by(Transaction.category)
         .order_by(func.sum(Transaction.amount).desc())
     )

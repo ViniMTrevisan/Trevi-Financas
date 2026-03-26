@@ -26,8 +26,8 @@ def _parse_json(text: str) -> dict:
     return json.loads(text)
 
 
-async def extract_from_photo(image_bytes: bytes) -> dict:
-    prompt = f"""Analise esta foto de recibo ou comprovante de pagamento.
+async def _extract_from_bytes(file_bytes: bytes, mime_type: str) -> dict:
+    prompt = f"""Analise este arquivo (recibo, comprovante ou nota fiscal).
 Responda APENAS com JSON válido, sem texto adicional:
 
 {{
@@ -40,12 +40,20 @@ Responda APENAS com JSON válido, sem texto adicional:
     response = await get_client().aio.models.generate_content(
         model=MODEL,
         contents=[
-            types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+            types.Part.from_bytes(data=file_bytes, mime_type=mime_type),
             prompt,
         ],
     )
-    logger.info("Gemini raw response (photo): %r", response.text)
+    logger.info("Gemini raw response (%s): %r", mime_type, response.text)
     return _parse_json(response.text)
+
+
+async def extract_from_photo(image_bytes: bytes) -> dict:
+    return await _extract_from_bytes(image_bytes, "image/jpeg")
+
+
+async def extract_from_document(file_bytes: bytes, mime_type: str) -> dict:
+    return await _extract_from_bytes(file_bytes, mime_type)
 
 
 async def extract_from_text(text: str) -> dict:
