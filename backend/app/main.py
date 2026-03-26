@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.database import Base, engine
+from app.models import Transaction  # noqa: F401 — registra o model no Base.metadata
 
 
 @asynccontextmanager
