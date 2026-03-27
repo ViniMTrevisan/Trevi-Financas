@@ -9,5 +9,6 @@ tzdata
 # test
 pytest==8.3.5
 pytest-asyncio==0.25.3
+pytest-cov==6.1.0
 httpx==0.28.1
 aiosqlite==0.20.0
