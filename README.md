@@ -32,9 +32,7 @@ PostgreSQL  ◄─────────────────────�
 | IA / OCR | Google Gemini 2.5 Flash (vision + texto) |
 | Banco de dados | PostgreSQL 16 · SQLAlchemy async · asyncpg |
 | Frontend | Vite · React 19 · TypeScript · Tailwind v4 · Recharts |
-| Deploy backend | Railway   *Desligado |
-| Deploy frontend | Vercel |
-| Dev local | Docker + docker-compose |
+| Rodar | Docker + docker-compose |
 
 ---
 
@@ -105,7 +103,7 @@ frontend/
 
 .github/
 └── workflows/
-    └── ci.yml            — testes + deploy (Railway + Vercel, comentado)
+    └── ci.yml            — testes 
 ```
 
 ---
