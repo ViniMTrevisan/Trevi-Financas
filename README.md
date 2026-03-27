@@ -60,8 +60,9 @@ PostgreSQL  ◄─────────────────────�
 
 ## Screenshots
 
-> 📸 Screenshots serão adicionados após o deploy.
-
+  | Dashboard | Bot Telegram |
+  |---|---|
+  | ![Dashboard](docs/screenshots/print-1.png) | ![Bot](docs/screenshots/print-2.jpeg) |
 ---
 
 ## Estrutura do repositório
