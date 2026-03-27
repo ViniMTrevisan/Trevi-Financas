@@ -35,3 +35,16 @@ export interface Budget {
   category: string;
   monthly_limit: number;
 }
+
+export interface MerchantTotal {
+  merchant: string;
+  total: number;
+  count: number;
+}
+
+export interface TransactionIn {
+  amount: number;
+  merchant: string;
+  category: string;
+  transaction_date: string; // "YYYY-MM-DD"
+}

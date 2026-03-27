@@ -1,0 +1,8 @@
+{"type":"click","text":"+\n    \n      Média diária do mês\n      Quanto você está gastando por dia em média. Ex: \"R$ 87,50/dia\"","choice":"avg","id":null,"timestamp":1774563826563}
+{"type":"click","text":"+\n    \n      Top estabelecimentos\n      Ranking dos locais onde você mais gastou no mês. Ex: iFood R$ 420, Supermercado R$ 310…","choice":"topmerchant","id":null,"timestamp":1774563828811}
+{"type":"click","text":"+\n    \n      Comparativo mês anterior\n      Card mostrando ▲ ou ▼ em relação ao mês passado. Ex: \"+12% vs março\"","choice":"compare","id":null,"timestamp":1774563829827}
+{"type":"click","text":"+\n    \n      Maior gasto do mês\n      Destaca a transação mais cara do mês. Ex: \"Netflix — R$ 599\"","choice":"biggest","id":null,"timestamp":1774563831477}
+{"type":"click","text":"+\n    \n      Editar transação na tabela\n      Clicar numa linha e editar valor, categoria ou estabelecimento direto no frontend","choice":"edit-tx","id":null,"timestamp":1774563839227}
+{"type":"click","text":"+\n    \n      Gerenciar metas no frontend\n      Criar e editar limites por categoria sem usar o bot. Hoje só tem /metas.","choice":"manage-budgets","id":null,"timestamp":1774563839943}
+{"type":"click","text":"+\n    \n      Deletar transação\n      Botão para remover um lançamento errado direto pelo dashboard","choice":"delete-tx","id":null,"timestamp":1774563845615}
+{"type":"click","text":"+\n    \n      Adicionar transação manual\n      Formulário para lançar gasto direto pelo frontend, sem passar pelo bot","choice":"add-tx","id":null,"timestamp":1774563848644}

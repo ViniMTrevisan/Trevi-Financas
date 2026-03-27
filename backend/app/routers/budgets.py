@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,3 +36,16 @@ async def upsert_budget(
     result = await session.execute(stmt)
     await session.commit()
     return result.scalar_one()
+
+
+@router.delete("/budgets/{category}", status_code=204)
+async def delete_budget(
+    category: str,
+    session: AsyncSession = Depends(get_db),
+):
+    result = await session.execute(
+        delete(CategoryBudget).where(CategoryBudget.category == category)
+    )
+    if result.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Meta não encontrada")
+    await session.commit()

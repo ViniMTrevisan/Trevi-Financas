@@ -1,15 +1,16 @@
 import csv
 import io
+import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models import Transaction
-from app.schemas import CategoryTotal, DailyTotal, SummaryMonth, SummaryToday, TransactionOut
+from app.schemas import CategoryTotal, DailyTotal, MerchantTotal, SummaryMonth, SummaryToday, TransactionIn, TransactionOut, TransactionUpdate
 
 router = APIRouter()
 
@@ -162,3 +163,82 @@ async def export_csv(
         media_type="text/csv; charset=utf-8",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+@router.get("/summary/merchants", response_model=list[MerchantTotal])
+async def summary_merchants(
+    month: str | None = Query(None, description="Mês no formato YYYY-MM"),
+    session: AsyncSession = Depends(get_db),
+):
+    if month:
+        year, m = int(month.split("-")[0]), int(month.split("-")[1])
+    else:
+        today = date.today()
+        year, m = today.year, today.month
+
+    result = await session.execute(
+        select(
+            Transaction.merchant,
+            func.sum(Transaction.amount).label("total"),
+            func.count(Transaction.id).label("count"),
+        )
+        .where(func.extract("year", Transaction.transaction_date) == year)
+        .where(func.extract("month", Transaction.transaction_date) == m)
+        .group_by(Transaction.merchant)
+        .order_by(func.sum(Transaction.amount).desc())
+        .limit(10)
+    )
+    return [
+        MerchantTotal(merchant=r.merchant, total=float(r.total), count=r.count)
+        for r in result
+    ]
+
+
+@router.post("/transactions", response_model=TransactionOut, status_code=201)
+async def create_transaction(
+    body: TransactionIn,
+    session: AsyncSession = Depends(get_db),
+):
+    tx = Transaction(
+        amount=body.amount,
+        merchant=body.merchant,
+        category=body.category,
+        transaction_date=date.fromisoformat(body.transaction_date),
+        source="manual",
+    )
+    session.add(tx)
+    await session.commit()
+    await session.refresh(tx)
+    return tx
+
+
+@router.put("/transactions/{transaction_id}", response_model=TransactionOut)
+async def update_transaction(
+    transaction_id: uuid.UUID,
+    body: TransactionUpdate,
+    session: AsyncSession = Depends(get_db),
+):
+    tx = await session.get(Transaction, transaction_id)
+    if tx is None:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+    if body.amount is not None:
+        tx.amount = body.amount
+    if body.merchant is not None:
+        tx.merchant = body.merchant
+    if body.category is not None:
+        tx.category = body.category
+    await session.commit()
+    await session.refresh(tx)
+    return tx
+
+
+@router.delete("/transactions/{transaction_id}", status_code=204)
+async def delete_transaction(
+    transaction_id: uuid.UUID,
+    session: AsyncSession = Depends(get_db),
+):
+    tx = await session.get(Transaction, transaction_id)
+    if tx is None:
+        raise HTTPException(status_code=404, detail="Transação não encontrada")
+    await session.delete(tx)
+    await session.commit()

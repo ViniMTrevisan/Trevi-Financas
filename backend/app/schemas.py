@@ -48,3 +48,22 @@ class BudgetOut(BaseModel):
 
 class BudgetIn(BaseModel):
     monthly_limit: float
+
+
+class MerchantTotal(BaseModel):
+    merchant: str
+    total: float
+    count: int
+
+
+class TransactionIn(BaseModel):
+    amount: float
+    merchant: str
+    category: str
+    transaction_date: str  # "YYYY-MM-DD"
+
+
+class TransactionUpdate(BaseModel):
+    amount: float | None = None
+    merchant: str | None = None
+    category: str | None = None

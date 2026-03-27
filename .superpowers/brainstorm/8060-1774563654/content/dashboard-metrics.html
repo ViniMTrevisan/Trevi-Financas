@@ -1,0 +1,80 @@
+<h2>Novos cards e métricas no Dashboard</h2>
+<p class="subtitle">Quais desses dados você quer ver? Pode selecionar vários.</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="avg" onclick="toggleSelect(this)">
+    <div class="letter">+</div>
+    <div class="content">
+      <h3>Média diária do mês</h3>
+      <p>Quanto você está gastando por dia em média. Ex: "R$ 87,50/dia"</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="topmerchant" onclick="toggleSelect(this)">
+    <div class="letter">+</div>
+    <div class="content">
+      <h3>Top estabelecimentos</h3>
+      <p>Ranking dos locais onde você mais gastou no mês. Ex: iFood R$ 420, Supermercado R$ 310…</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="compare" onclick="toggleSelect(this)">
+    <div class="letter">+</div>
+    <div class="content">
+      <h3>Comparativo mês anterior</h3>
+      <p>Card mostrando ▲ ou ▼ em relação ao mês passado. Ex: "+12% vs março"</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="biggest" onclick="toggleSelect(this)">
+    <div class="letter">+</div>
+    <div class="content">
+      <h3>Maior gasto do mês</h3>
+      <p>Destaca a transação mais cara do mês. Ex: "Netflix — R$ 599"</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="projection" onclick="toggleSelect(this)">
+    <div class="letter">+</div>
+    <div class="content">
+      <h3>Projeção do mês</h3>
+      <p>Baseado no ritmo atual, quanto vai gastar no mês todo. Ex: "Projeção: R$ 2.800"</p>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top:24px">E para interatividade (sem precisar do bot):</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="edit-tx" onclick="toggleSelect(this)">
+    <div class="letter">+</div>
+    <div class="content">
+      <h3>Editar transação na tabela</h3>
+      <p>Clicar numa linha e editar valor, categoria ou estabelecimento direto no frontend</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="manage-budgets" onclick="toggleSelect(this)">
+    <div class="letter">+</div>
+    <div class="content">
+      <h3>Gerenciar metas no frontend</h3>
+      <p>Criar e editar limites por categoria sem usar o bot. Hoje só tem /metas.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="delete-tx" onclick="toggleSelect(this)">
+    <div class="letter">+</div>
+    <div class="content">
+      <h3>Deletar transação</h3>
+      <p>Botão para remover um lançamento errado direto pelo dashboard</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="add-tx" onclick="toggleSelect(this)">
+    <div class="letter">+</div>
+    <div class="content">
+      <h3>Adicionar transação manual</h3>
+      <p>Formulário para lançar gasto direto pelo frontend, sem passar pelo bot</p>
+    </div>
+  </div>
+</div>
