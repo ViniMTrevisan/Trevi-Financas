@@ -23,7 +23,7 @@ FastAPI Bot  ──►  Google Gemini 2.5 Flash (OCR + NLP)
    │
    ▼
 PostgreSQL  ◄──────────────────────────────────────────  Vite Dashboard
-(Supabase)                                               React + Recharts
+(Docker)                                               React + Recharts
 ```
 
 | Camada | Tecnologia |
