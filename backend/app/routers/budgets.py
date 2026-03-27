@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import delete, select
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -24,18 +23,20 @@ async def upsert_budget(
     body: BudgetIn,
     session: AsyncSession = Depends(get_db),
 ):
-    stmt = (
-        insert(CategoryBudget)
-        .values(category=category, monthly_limit=body.monthly_limit)
-        .on_conflict_do_update(
-            index_elements=["category"],
-            set_={"monthly_limit": body.monthly_limit},
-        )
-        .returning(CategoryBudget)
+    result = await session.execute(
+        select(CategoryBudget).where(CategoryBudget.category == category)
     )
-    result = await session.execute(stmt)
+    existing = result.scalar_one_or_none()
+    if existing:
+        existing.monthly_limit = body.monthly_limit
+        await session.commit()
+        await session.refresh(existing)
+        return existing
+    new_budget = CategoryBudget(category=category, monthly_limit=body.monthly_limit)
+    session.add(new_budget)
     await session.commit()
-    return result.scalar_one()
+    await session.refresh(new_budget)
+    return new_budget
 
 
 @router.delete("/budgets/{category}", status_code=204)
