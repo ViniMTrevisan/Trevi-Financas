@@ -3,6 +3,7 @@ import io
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
+from sqlalchemy import select
 from telegram import InputFile, Update
 from telegram.ext import ContextTypes
 
@@ -20,6 +21,7 @@ from app.bot.queries import (
     update_transaction,
 )
 from app.database import AsyncSessionLocal
+from app.models import InvestmentSnapshot
 
 _MONTHS = [
     "", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -280,6 +282,74 @@ async def handle_exportar(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         document=InputFile(io.BytesIO(csv_bytes), filename=filename),
         caption=f"📊 {len(txs)} transações de {_MONTHS[month]}/{year}",
     )
+
+
+async def handle_investimento(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+
+    if not args:
+        await update.message.reply_text(
+            "💰 *Registro de investimento*\n\n"
+            "Uso: `/investimento <valor> [observação]`\n\n"
+            "Exemplos:\n"
+            "`/investimento 13500`\n"
+            "`/investimento 13850 Rendimento ótimo esse mês`",
+            parse_mode="Markdown",
+        )
+        return
+
+    try:
+        amount = float(Decimal(args[0].replace(",", ".")))
+    except InvalidOperation:
+        await update.message.reply_text(f"Valor inválido: {args[0]}")
+        return
+
+    notes = " ".join(args[1:]) if len(args) > 1 else None
+    today = date.today()
+
+    async with AsyncSessionLocal() as session:
+        existing = await session.execute(
+            select(InvestmentSnapshot).where(InvestmentSnapshot.snapshot_date == today)
+        )
+        if existing.scalar_one_or_none():
+            await update.message.reply_text(
+                f"⚠️ Já existe um registro para hoje ({today.strftime('%d/%m/%Y')}).\n"
+                "Use o dashboard para editar ou deletar."
+            )
+            return
+
+        # Busca snapshot anterior para calcular crescimento
+        prev_result = await session.execute(
+            select(InvestmentSnapshot)
+            .where(InvestmentSnapshot.snapshot_date < today)
+            .order_by(InvestmentSnapshot.snapshot_date.desc())
+        )
+        prev = prev_result.scalar_one_or_none()
+
+        import uuid as _uuid
+        snapshot = InvestmentSnapshot(
+            id=_uuid.uuid4(),
+            amount=amount,
+            notes=notes,
+            snapshot_date=today,
+        )
+        session.add(snapshot)
+        await session.commit()
+
+    lines = [
+        "✅ *Investimento registrado!*",
+        f"📅 Data: {today.strftime('%d/%m/%Y')}",
+        f"💰 Saldo: {_fmt(amount)}",
+    ]
+
+    if prev:
+        prev_amount = float(prev.amount)
+        diff = amount - prev_amount
+        pct = (diff / prev_amount * 100) if prev_amount else 0
+        sign = "+" if diff >= 0 else ""
+        lines.append(f"📈 Crescimento: {sign}{_fmt(diff)} ({sign}{pct:.1f}%) vs período anterior")
+
+    await update.message.reply_text("\n".join(lines), parse_mode="Markdown")
 
 
 async def send_weekly_summary(context: ContextTypes.DEFAULT_TYPE) -> None:

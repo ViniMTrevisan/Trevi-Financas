@@ -6,8 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.bot.application import build_application
 from app.config import get_settings
 from app.database import Base, engine
-from app.models import CategoryBudget, Transaction  # noqa: F401 — registra os models no Base.metadata
-from app.routers import budgets, transactions
+from app.models import CategoryBudget, InvestmentSnapshot, Transaction  # noqa: F401 — registra os models no Base.metadata
+from app.routers import budgets, investments, transactions
 
 
 @asynccontextmanager
@@ -47,6 +47,7 @@ app.add_middleware(
 
 app.include_router(transactions.router, prefix="/api")
 app.include_router(budgets.router, prefix="/api")
+app.include_router(investments.router, prefix="/api")
 
 
 @app.get("/health")

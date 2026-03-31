@@ -8,6 +8,7 @@ from app.bot.handlers.commands import (
     handle_editar,
     handle_exportar,
     handle_hoje,
+    handle_investimento,
     handle_mes,
     handle_metas,
     handle_semana,
@@ -35,6 +36,7 @@ def build_application() -> Application:
     app.add_handler(CommandHandler("exportar", handle_exportar, filters=owner))
     app.add_handler(CommandHandler("metas", handle_metas, filters=owner))
     app.add_handler(CommandHandler("editar", handle_editar, filters=owner))
+    app.add_handler(CommandHandler("investimento", handle_investimento, filters=owner))
 
     app.add_handler(MessageHandler(owner & filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(owner & filters.Document.ALL, handle_document))

@@ -4,17 +4,21 @@ import CategoryChart from "./components/CategoryChart";
 import CommandsReference from "./components/CommandsReference";
 import DailyChart from "./components/DailyChart";
 import ExtraMetricsCards from "./components/ExtraMetricsCards";
+import InvestmentCards from "./components/InvestmentCards";
+import InvestmentChart from "./components/InvestmentChart";
+import InvestmentHistory from "./components/InvestmentHistory";
 import SummaryCards from "./components/SummaryCards";
 import TopMerchants from "./components/TopMerchants";
 import TransactionsTable from "./components/TransactionsTable";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
-type Tab = "dashboard" | "transacoes" | "comandos";
+type Tab = "dashboard" | "transacoes" | "investimentos" | "comandos";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
   { id: "transacoes", label: "Transações" },
+  { id: "investimentos", label: "Investimentos" },
   { id: "comandos", label: "Comandos" },
 ];
 
@@ -36,6 +40,7 @@ export default function App() {
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
 
   const showMonthPicker = activeTab === "dashboard" || activeTab === "transacoes";
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -128,6 +133,20 @@ export default function App() {
               </a>
             </div>
             <TransactionsTable selectedMonth={selectedMonth} />
+          </div>
+        )}
+
+        {activeTab === "investimentos" && (
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Investimentos</h1>
+              <p className="text-sm text-gray-400 mt-1">
+                Evolução da carteira de CDB — registre no dia 10 de cada mês
+              </p>
+            </div>
+            <InvestmentCards />
+            <InvestmentChart />
+            <InvestmentHistory />
           </div>
         )}
 

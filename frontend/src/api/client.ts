@@ -1,4 +1,9 @@
 import type {
+  InvestmentSnapshot,
+  InvestmentSnapshotIn,
+  InvestmentSummary,
+} from "../types/investment";
+import type {
   Budget,
   CategoryTotal,
   MerchantTotal,
@@ -82,4 +87,13 @@ export const api = {
     put<Budget>(`/api/budgets/${category}`, { monthly_limit }),
 
   deleteBudget: (category: string) => del(`/api/budgets/${category}`),
+
+  investments: () => get<InvestmentSnapshot[]>("/api/investments"),
+
+  investmentSummary: () => get<InvestmentSummary>("/api/investments/summary"),
+
+  createInvestment: (data: InvestmentSnapshotIn) =>
+    post<InvestmentSnapshot>("/api/investments", data),
+
+  deleteInvestment: (id: string) => del(`/api/investments/${id}`),
 };

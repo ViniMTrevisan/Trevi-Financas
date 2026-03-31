@@ -8,6 +8,20 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
 
 
+class InvestmentSnapshot(Base):
+    __tablename__ = "investment_snapshots"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    snapshot_date: Mapped[date] = mapped_column(Date, nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class Transaction(Base):
     __tablename__ = "transactions"
 

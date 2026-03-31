@@ -43,6 +43,20 @@ const COMMANDS: Command[] = [
     cmd: "/exportar",
     desc: "Receber CSV do mês atual via mensagem",
   },
+  {
+    cmd: "/investimento",
+    desc: "Ver instruções para registrar saldo da carteira",
+  },
+  {
+    cmd: "/investimento <valor>",
+    desc: "Registrar saldo do CDB para hoje",
+    example: "/investimento 13500",
+  },
+  {
+    cmd: "/investimento <valor> <observação>",
+    desc: "Registrar saldo com observação",
+    example: "/investimento 13850 Rendimento ótimo esse mês",
+  },
 ];
 
 const FREE_TEXT: Command[] = [
